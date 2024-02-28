@@ -40,8 +40,8 @@ const Patcher = create('TrackEdit')
 const TrackEdit: Plugin = {
     ...manifest,
     onStart() {
-        const filterEdited = (c) => c.content == "[TrackEdit]" && c.type == "inlineCode"
-        const filterDeleted = (c) => c.content == "[TrackEdit]" && c.type == "inlineCode"
+        const filterEdited = (c) => c.content == "[TrackEditEdited]" && c.type == "inlineCode"
+        const filterDeleted = (c) => c.content == "[TrackEditDeleted]" && c.type == "inlineCode"
         const colorContent = (c, l) => {
             return {
                 content: c,
@@ -69,6 +69,7 @@ const TrackEdit: Plugin = {
             const rows = JSON.parse(args[1])
             for (const row of rows) {
                 if (row.message?.content && Array.isArray(row.message?.content)) {
+                    console.log(row.message.content)
                     if (row.message?.content.slice(0, 1).filter(c => filterDeleted(c)).length) {
                         row.message.edited = "deleted"
                         row.message.content = [
@@ -92,26 +93,29 @@ const TrackEdit: Plugin = {
         Patcher.before(MessageHandlers, "MESSAGE_UPDATE", (self, args, res) => {
             if (args[0].ignore || !args[0].guildId  ) return // guildIdがないものを除くことでDislate等での編集を除く.他のプラグインとの互換性を保つためにはignore:trueを指定
             const orgMessage = MessageStore.getMessage(args[0].message.channel_id, args[0].message.id)
-            if (!orgMessage) return
+            if (!orgMessage) return;
             let orgText = orgMessage.content ? orgMessage.content.split("\n").map(t => t.replace(/^>>>/, "").replace(/^>/, "")).join("\n") : "" // 引用ブロックに含まれるとTrackEditが内包されて最上位階層で見つからなく可能性があるため消す
             let newText = args[0].message?.content ? args[0].message.content : ""
             if (orgText === newText) return // embed更新で編集判定してしまうのを防ぐ
-            args[0].message.content = `${orgText} \`[TrackEdit]\`\n${newText}` // 空白がないとリンクに巻き込まれる可能性あり
+            args[0].message.content = `${orgText} \`[TrackEditEdited]\`\n${newText}` // 空白がないとリンクに巻き込まれる可能性あり
         })
 
         Patcher.instead(MessageHandlers, "MESSAGE_DELETE", (self, args, org) => {
+            console.log("DELETE");
             const orgMessage = MessageStore.getMessage(args[0].channelId, args[0].id)
             if (!orgMessage) {
                 org.apply(self, args)
                 return
             }
-            let orgText = orgMessage.content ? orgMessage.content : ""
+            let orgText = orgMessage.content ? orgMessage.content : "";
+            console.log(orgText);
+            if (orgText.startsWith("`[TrackEditDeleted]`")) return;
             const editEvent = {
                 type: "MESSAGE_UPDATE",
                 guildId: args[0].guildId,
                 message: {
                     ...orgMessage,
-                    content: `\`[TrackEdit]\`${orgText}`, // 後ろに置く必要はないので前に置く
+                    content: `\`[TrackEditDeleted]\`${orgText}`, // 後ろに置く必要はないので前に置く
                     guild_id: args[0].guildId
                 },
                 ignore: true // ここでのUPDATEを検知して編集判定しないようにする
