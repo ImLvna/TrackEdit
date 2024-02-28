@@ -1,32 +1,39 @@
-import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {React} from 'enmity/metro/common'
-import {create} from 'enmity/patcher'
+import { Plugin, registerPlugin } from 'enmity/managers/plugins'
+import { React } from 'enmity/metro/common'
+import { create } from 'enmity/patcher'
 // @ts-ignore
-import manifest, {name as plugin_name} from '../manifest.json'
+import { bulk, filters, getModule } from "enmity/modules"
+import manifest from '../manifest.json'
 import Settings from "./components/Settings"
-import {bulk, filters} from "enmity/modules"
-import {getStoreHandlers} from "../../hook"
 
 const [
     FluxDispatcher,
-    UserStore,
     MessageStore,
     ReactNative
 ] = bulk(
     filters.byProps("_currentDispatchActionType", "_subscriptions", "_actionHandlers", "_waitQueue"),
-    filters.byProps("getUser", "getUsers"),
     filters.byProps("getMessage", "getMessages"),
     filters.byProps("View")
 )
 const {DCDChatManager} = ReactNative.NativeModules
 
-const [
-    MessageHandlers,
-    UserHandlers
-] = [
-    getStoreHandlers("MessageStore"),
-    getStoreHandlers("UserStore")
-]
+
+const getStores = getModule((n) => {
+    var t, g, m;
+    return (m =
+      (g = (t = n._dispatcher) == null ? void 0 : t._actionHandlers) == null
+        ? void 0
+        : g._dependencyGraph) == null
+      ? void 0
+      : m.nodes;
+  }),
+  C = getStores._dispatcher._actionHandlers._dependencyGraph.nodes;
+function getStoreHandlers(n) {
+  let t = Object.keys(C).filter((g) => C[g].name === n);
+  if (t.length) return C[t[0]].actionHandler;
+}
+
+const MessageHandlers = getStoreHandlers("MessageStore")
 
 const Patcher = create('TrackEdit')
 
@@ -83,7 +90,7 @@ const TrackEdit: Plugin = {
         })
 
         Patcher.before(MessageHandlers, "MESSAGE_UPDATE", (self, args, res) => {
-            if (args[0].ignore || !args[0].guildId || args[0].message?.author?.id === UserStore?.getCurrentUser()?.id) return // guildIdがないものを除くことでDislate等での編集を除く.他のプラグインとの互換性を保つためにはignore:trueを指定
+            if (args[0].ignore || !args[0].guildId  ) return // guildIdがないものを除くことでDislate等での編集を除く.他のプラグインとの互換性を保つためにはignore:trueを指定
             const orgMessage = MessageStore.getMessage(args[0].message.channel_id, args[0].message.id)
             if (!orgMessage) return
             let orgText = orgMessage.content ? orgMessage.content.split("\n").map(t => t.replace(/^>>>/, "").replace(/^>/, "")).join("\n") : "" // 引用ブロックに含まれるとTrackEditが内包されて最上位階層で見つからなく可能性があるため消す
@@ -94,7 +101,7 @@ const TrackEdit: Plugin = {
 
         Patcher.instead(MessageHandlers, "MESSAGE_DELETE", (self, args, org) => {
             const orgMessage = MessageStore.getMessage(args[0].channelId, args[0].id)
-            if (!orgMessage || orgMessage.author?.id === UserStore?.getCurrentUser()?.id) {
+            if (!orgMessage) {
                 org.apply(self, args)
                 return
             }
