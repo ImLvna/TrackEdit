@@ -69,7 +69,6 @@ const TrackEdit: Plugin = {
             const rows = JSON.parse(args[1])
             for (const row of rows) {
                 if (row.message?.content && Array.isArray(row.message?.content)) {
-                    console.log(row.message.content)
                     if (row.message?.content.slice(0, 1).filter(c => filterDeleted(c)).length) {
                         row.message.edited = "deleted"
                         row.message.content = [
@@ -101,14 +100,12 @@ const TrackEdit: Plugin = {
         })
 
         Patcher.instead(MessageHandlers, "MESSAGE_DELETE", (self, args, org) => {
-            console.log("DELETE");
             const orgMessage = MessageStore.getMessage(args[0].channelId, args[0].id)
             if (!orgMessage) {
                 org.apply(self, args)
                 return
             }
             let orgText = orgMessage.content ? orgMessage.content : "";
-            console.log(orgText);
             if (orgText.startsWith("`[TrackEditDeleted]`")) return;
             const editEvent = {
                 type: "MESSAGE_UPDATE",

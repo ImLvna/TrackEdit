@@ -1,10 +1,9 @@
-import {FormRow, FormSection, View, ScrollView, Image, Text} from 'enmity/components'
-import {Constants, Navigation, React, StyleSheet} from 'enmity/metro/common'
-import {Linking} from "enmity/metro/common"
+import { FormRow, FormSection, Image, ScrollView, Text, View } from 'enmity/components'
+import { Constants, Linking, Navigation, React, StyleSheet } from 'enmity/metro/common'
 // @ts-ignore
-import {name, version} from '../../manifest.json'
-import {getIDByName} from "enmity/api/assets"
-import {getByProps} from "enmity/modules"
+import { getIDByName } from "enmity/api/assets"
+import { getByProps } from "enmity/modules"
+import { version } from '../../manifest.json'
 
 const GitHubIcon = getIDByName('img_account_sync_github_white')
 const DiscordIcon = getIDByName('Discord')
@@ -61,14 +60,19 @@ export default ({settings}) => {
                     source={{uri: 'https://avatars.githubusercontent.com/u/43488869'}}
                     style={styles.image}
                 />
+                <Image
+                    source={{uri: 'https://avatars.githubusercontent.com/u/44179559'}}
+                    style={styles.image}
+                />
                 <View style={styles.title}>
                     <Text style={styles.name}>TrackEdit</Text>
                     <Text style={styles.author}>by mafu</Text>
+                    <Text style={styles.author}>Edited by Luna</Text>
                 </View>
             </View>
             <FormSection title="INFORMATION">
                 <FormRow
-                    label="Follow me on Twitter"
+                    label="Follow Mafu on Twitter"
                     style={styles.info}
                     trailing={FormRow.Arrow}
                     leading={<FormRow.Icon source={TwitterIcon}/>}
@@ -77,7 +81,7 @@ export default ({settings}) => {
                     }}
                 />
                 <FormRow
-                    label="Visit my server for help"
+                    label="Visit Mafu's server for help"
                     style={styles.info}
                     trailing={FormRow.Arrow}
                     leading={<FormRow.Icon source={DiscordIcon}/>}
@@ -95,7 +99,7 @@ export default ({settings}) => {
                     trailing={FormRow.Arrow}
                     leading={<FormRow.Icon source={GitHubIcon}/>}
                     onPress={() => {
-                        Linking.openURL("https://github.com/m4fn3/TrackEdit")
+                        Linking.openURL("https://github.com/imlvna/TrackEdit")
                     }}
                 />
             </FormSection>
