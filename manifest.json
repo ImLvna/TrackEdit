@@ -1,11 +1,15 @@
 {
   "name": "TrackEdit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Track edits/delete of other's messages",
   "authors": [
     {
       "name": "mafu",
       "id": "519760564755365888"
+    },
+    {
+      "name": "Luna",
+      "id": "799319081723232267"
     }
   ],
   "color": "#fff98a"
